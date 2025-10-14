@@ -1,3 +1,4 @@
+// api/src/db.ts
 import { Pool } from 'pg';
 
 let pool: Pool | undefined;
@@ -5,13 +6,16 @@ let pool: Pool | undefined;
 function getPool(): Pool {
   if (!pool) {
     const cs = process.env.DATABASE_URL;
-    if (!cs) {
-      // Do not crash on cold start for non-DB routes like /health
-      throw new Error('DATABASE_URL is not set on the server');
-    }
+    if (!cs) throw new Error('Missing env var: DATABASE_URL');
+
     pool = new Pool({
       connectionString: cs,
-      // Supabase usually requires SSL in serverless:
+      // Serverless-friendly settings
+      max: 1,                         // keep the pool tiny in lambdas
+      idleTimeoutMillis: 30_000,      // close idle quickly
+      connectionTimeoutMillis: 5_000, // fail fast instead of hanging
+      keepAlive: true,
+      // Supabase requires SSL in serverless; also keep ?sslmode=require in the URL
       ssl: { rejectUnauthorized: false },
     });
   }
@@ -21,8 +25,7 @@ function getPool(): Pool {
 export async function query(text: string, params: any[] = []) {
   const client = await getPool().connect();
   try {
-    const res = await client.query(text, params);
-    return res;
+    return await client.query(text, params);
   } finally {
     client.release();
   }
