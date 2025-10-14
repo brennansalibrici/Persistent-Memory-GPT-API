@@ -30,3 +30,5 @@ export async function query(text: string, params: any[] = []) {
     client.release();
   }
 }
+
+console.log('Connecting to DB host:', new URL(process.env.DATABASE_URL!).hostname);
