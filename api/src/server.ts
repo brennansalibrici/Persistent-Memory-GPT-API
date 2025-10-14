@@ -25,4 +25,7 @@ app.use(alerts);
 
 app.get('/', (_req, res) => res.redirect('/health'));
 
+// Optional: silence favicon hits instead of 401s
+app.get(['/favicon.ico', '/favicon.png'], (_req, res) => res.status(204).end());
+
 export default app; // (no app.listen on Vercel)
