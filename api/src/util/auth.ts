@@ -1,9 +1,7 @@
-// src/auth.ts
+// api/src/util/auth.ts
 import type { Request, Response, NextFunction } from 'express';
 
-const PUBLIC_PATHS = new Set<string>([
-  '/', '/health', '/favicon.ico', '/favicon.png'
-]);
+const PUBLIC_PATHS = new Set<string>(['/', '/health', '/favicon.ico', '/favicon.png']);
 
 export function requireApiKey(req: Request, res: Response, next: NextFunction) {
   if (PUBLIC_PATHS.has(req.path)) return next();
@@ -19,3 +17,9 @@ export function requireApiKey(req: Request, res: Response, next: NextFunction) {
 
   next();
 }
+
+// 👇 re-export under the name your routes expect
+export const apiKeyAuth = requireApiKey;
+
+// (optional) default export for flexibility
+export default requireApiKey;
