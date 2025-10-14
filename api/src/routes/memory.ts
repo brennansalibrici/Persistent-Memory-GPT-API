@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { query } from '../db.js';
-import { requireApiKey  } from '../util/auth.js';
+import { apiKeyAuth  } from '../util/auth.js';
 
 const r = Router();
 r.use(apiKeyAuth);
