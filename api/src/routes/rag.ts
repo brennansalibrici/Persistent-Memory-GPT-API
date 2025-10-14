@@ -46,4 +46,15 @@ r.post('/search', async (req, res) => {
   res.json(out.rows);
 });
 
+r.post("/rag/embed", async (req, res, next) => {
+  try {
+    const { text } = req.body ?? {};
+    if (!text) return res.status(400).json({ error: "text is required" });
+    const [vector] = await embed(text);
+    res.json({ dims: vector.length, vector });
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default r;
