@@ -10,6 +10,7 @@ import snapshots from "./routes/snapshots.js";
 import sessions from "./routes/sessions.js";
 import trades from "./routes/trades.js";
 import alerts from "./routes/alerts.js";
+import memoryItems from "./routes/memory_items.js";
 import { requireApiKey } from "./util/auth.js";
 
 const app = express();
@@ -29,6 +30,7 @@ app.use(memory);
 app.use(rag);
 app.use(snapshots);
 app.use(sessions);
+app.use(memoryItems);
 app.use(trades);
 app.use(alerts);
 
