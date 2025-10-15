@@ -52,20 +52,23 @@ r.get("/memory/items", async (req: Request, res: Response) => {
   if (!user_external_id) return res.status(400).json({ ok: false, error: '"user_external_id" is required' });
   res.set("Cache-Control", "no-store");
 
-  // parse CSV into arrays
   const typesArr = typeof types === "string" ? types.split(",").map(s => s.trim()).filter(Boolean) : [];
   const tagsArr  = typeof tags  === "string" ? tags.split(",").map(s => s.trim()).filter(Boolean)  : [];
 
-  // dynamic filters
-  const where = ['user_external_id = $1'];
+  const where: string[] = ["user_external_id = $1"];
   const params: any[] = [user_external_id];
   let i = 2;
 
   if (typesArr.length) {
-    where.push(`type = any($${i}::text[])`); params.push(typesArr); i++;
+    where.push(`type = any($${i}::text[])`);
+    params.push(typesArr);
+    i++;
   }
   if (tagsArr.length) {
-    where.push(`tags ?| $${i}`);             params.push(tagsArr);  i++;   -- jsonb operator: any of these keys exist
+    // robust: matches if ANY of the provided tag strings exists in tags jsonb
+    where.push(`jsonb_exists_any(tags, $${i}::text[])`);
+    params.push(tagsArr);
+    i++;
   }
 
   const q = await query(
@@ -82,14 +85,13 @@ r.get("/memory/items", async (req: Request, res: Response) => {
 
 /**
  * GET /rehydrate2?user_external_id=...&n=20
- * Pulls a balanced mix: top structural, then importance-weighted semantic + episodic.
+ * Balanced recall: structural first, then semantic+episodic by importance/recency.
  */
 r.get("/rehydrate2", async (req: Request, res: Response) => {
   const { user_external_id, n = 20 } = req.query as any;
   if (!user_external_id) return res.status(400).json({ ok: false, error: '"user_external_id" is required' });
   res.set("Cache-Control", "no-store");
 
-  // 1) key structural (roles/relationships) – always useful
   const structural = await query(
     `select text from memory_items
       where user_external_id=$1 and type='structural'
@@ -98,9 +100,8 @@ r.get("/rehydrate2", async (req: Request, res: Response) => {
     [user_external_id]
   );
 
-  // 2) top semantic + episodic by importance, then recency
   const rest = await query(
-    `select type, text from memory_items
+    `select text from memory_items
       where user_external_id=$1 and type in ('semantic','episodic')
       order by importance desc, created_at desc
       limit $2`,
