@@ -1,0 +1,102 @@
+openapi: 3.1.0
+info:
+  title: Persistent Memory API
+  version: "1.1.0"
+servers:
+  - url: https://persistent-memory-custom-gpt-api.vercel.app
+paths:
+  /memory/item:
+    post:
+      operationId: addMemoryItem
+      summary: Save a structural, semantic, or episodic memory
+      security: [{ apiKey: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [user_external_id, type, text]
+              properties:
+                user_external_id: { type: string }
+                type: { type: string, enum: [structural, semantic, episodic] }
+                text: { type: string }
+                subject: { type: string, nullable: true }
+                entities: { type: array, items: { type: string } }
+                tags: { type: array, items: { type: string } }
+                importance: { type: integer, minimum: 1, maximum: 5, default: 1 }
+                source_gpt: { type: string, nullable: true }
+                conversation_id: { type: string, nullable: true }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  id: { oneOf: [{ type: string }, { type: integer }] }
+                  created_at: { type: string }
+  /memory/items:
+    get:
+      operationId: listMemoryItems
+      summary: List memories across types with filtering
+      security: [{ apiKey: [] }]
+      parameters:
+        - in: query
+          name: user_external_id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: types
+          required: false
+          description: CSV of types (structural,semantic,episodic)
+          schema: { type: string }
+        - in: query
+          name: tags
+          required: false
+          description: CSV of tags to filter by (matches any)
+          schema: { type: string }
+        - in: query
+          name: limit
+          required: false
+          schema: { type: integer, default: 50, minimum: 1, maximum: 200 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { type: object }
+  /rehydrate2:
+    get:
+      operationId: rehydrate2
+      summary: Balanced recall mixing structural + semantic + episodic
+      security: [{ apiKey: [] }]
+      parameters:
+        - in: query
+          name: user_external_id
+          required: true
+          schema: { type: string }
+        - in: query
+          name: n
+          required: false
+          schema: { type: integer, default: 20, minimum: 1, maximum: 100 }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok: { type: boolean }
+                  context: { type: string }
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: x-api-key
