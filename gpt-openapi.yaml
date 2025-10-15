@@ -38,6 +38,7 @@ paths:
                   ok: { type: boolean }
                   id: { oneOf: [{ type: string }, { type: integer }] }
                   created_at: { type: string }
+
   /memory/items:
     get:
       operationId: listMemoryItems
@@ -56,7 +57,7 @@ paths:
         - in: query
           name: tags
           required: false
-          description: CSV of tags to filter by (matches any)
+          description: CSV of tags (matches any)
           schema: { type: string }
         - in: query
           name: limit
@@ -70,6 +71,7 @@ paths:
               schema:
                 type: array
                 items: { type: object }
+
   /rehydrate2:
     get:
       operationId: rehydrate2
@@ -94,6 +96,7 @@ paths:
                 properties:
                   ok: { type: boolean }
                   context: { type: string }
+
 components:
   securitySchemes:
     apiKey:
