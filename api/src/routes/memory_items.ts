@@ -158,24 +158,4 @@ r.get("/rehydrate2", async (req: Request, res: Response) => {
   });
 });
 
-  const structuralRows = (structuralRes.rows ?? []) as TextRow[];
-
-  const restRes = await query(
-    `select text from memory_items
-      where user_external_id=$1 and type in ('semantic','episodic')
-      order by importance desc, created_at desc
-      limit $2`,
-    [user_external_id, Math.max(0, Number(n) - structuralRows.length)]
-  );
-
-  const restRows = (restRes.rows ?? []) as TextRow[];
-
-  const bullets = [
-    ...structuralRows.map((r: TextRow) => `• ${r.text}`),
-    ...restRows.map((r: TextRow) => `• ${r.text}`),
-  ].slice(0, Number(n));
-
-  return res.json({ ok: true, context: bullets.join("\n") });
-});
-
 export default r;
