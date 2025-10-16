@@ -113,23 +113,50 @@ r.get("/memory/items", async (req: Request, res: Response) => {
 });
 
 /**
- * GET /rehydrate2?user_external_id=...&n=20
+ * GET /rehydrate2?user_external_id=...&source_gpt=ChatGPT%20Mastery%20GPT&n=20
  */
 r.get("/rehydrate2", async (req: Request, res: Response) => {
-  const { user_external_id, n = 20 } = req.query as any;
+  const { user_external_id, source_gpt = null, n = 20 } = req.query as any;
 
   if (!user_external_id)
     return res.status(400).json({ ok: false, error: '"user_external_id" is required' });
 
   res.set("Cache-Control", "no-store");
 
+  // 1️⃣ Always include all structural items (global facts)
   const structuralRes = await query(
-    `select text from memory_items
+    `select id, type, text, subject, entities, tags, importance, source_gpt, conversation_id, created_at
+       from memory_items
       where user_external_id=$1 and type='structural'
-      order by importance desc, created_at desc
-      limit 5`,
+      order by importance desc, created_at desc`,
     [user_external_id]
   );
+  const structural = structuralRes.rows ?? [];
+
+  // 2️⃣ Add scoped semantic + episodic memories (filtered by source_gpt)
+  const scopedRes = await query(
+    `select id, type, text, subject, entities, tags, importance, source_gpt, conversation_id, created_at
+       from memory_items
+      where user_external_id=$1
+        and type in ('semantic','episodic')
+        and ($2::text is null or source_gpt=$2)
+      order by created_at desc, importance desc
+      limit $3`,
+    [user_external_id, source_gpt, Number(n)]
+  );
+  const scoped = scopedRes.rows ?? [];
+
+  // 3️⃣ Combine & format for GPT context
+  const all = [...structural, ...scoped];
+  const bullets = all.map((r: any) => `• ${r.text}`);
+
+  return res.json({
+    ok: true,
+    count: all.length,
+    context: bullets.join("\n"),
+    items: all, // structured data for future features
+  });
+});
 
   const structuralRows = (structuralRes.rows ?? []) as TextRow[];
 
