@@ -1,4 +1,9 @@
 // api/src/server.ts
+// @ts-ignore
+import pingLearningSession from "../ping-learning-session.js";
+const pingHandler = pingLearningSession.default || pingLearningSession;
+
+
 import "dotenv/config";
 import express, { Request, Response } from "express";
 import cors from "cors";
@@ -12,11 +17,10 @@ import trades from "./routes/trades.js";
 import alerts from "./routes/alerts.js";
 import memoryItems from "./routes/memory_items.js";
 import boot from "./routes/boot.js";
-import pingLearningSession from "../ping-learning-session.js";
 import { requireApiKey } from "./util/auth.js";
 
 const app = express();
-const pingHandler = pingLearningSession.default || pingLearningSession;
+
 
 // middleware
 app.use(cors());
