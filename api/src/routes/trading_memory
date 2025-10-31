@@ -1,0 +1,103 @@
+// /api/src/routes/trading_memory.ts
+import express from "express";
+import { supabase } from "../util/supabaseClient.js";
+
+const router = express.Router();
+
+/**
+ * POST /api/trading-memory
+ * Save new trading-related learning data.
+ *
+ * Body:
+ * {
+ *   type: "semantic" | "episodic" | "structural",
+ *   branch_id?: string,
+ *   mode_id?: string,
+ *   lesson_id?: string,
+ *   content: string,
+ *   summary?: string
+ * }
+ */
+router.post("/api/trading-memory", async (req, res) => {
+  const { type, branch_id, mode_id, lesson_id, content, summary } = req.body;
+
+  try {
+    // Determine which table to use
+    let table: string;
+    switch (type) {
+      case "semantic":
+        table = "trading_knowledge";
+        break;
+      case "episodic":
+        table = "trading_autosaves";
+        break;
+      case "structural":
+        table = "trading_branches";
+        break;
+      default:
+        return res.status(400).json({ ok: false, error: "Invalid type" });
+    }
+
+    // Construct insert object depending on table
+    const record: Record<string, any> = {};
+    if (branch_id) record.branch_id = branch_id;
+    if (mode_id) record.mode_id = mode_id;
+    if (lesson_id) record.lesson_id = lesson_id;
+
+    // Main content fields
+    record.notes = content;
+    record.ai_summary = summary ?? null;
+    record.created_at = new Date().toISOString();
+
+    // Insert into Supabase
+    const { data, error } = await supabase.from(table).insert([record]).select();
+
+    if (error) throw error;
+
+    return res.status(200).json({ ok: true, data });
+  } catch (err: any) {
+    console.error("Trading memory error:", err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/trading-memory
+ * Retrieve trading memories filtered by branch / mode / type.
+ * Query parameters: type, branch_id, mode_id, limit
+ */
+router.get("/api/trading-memory", async (req, res) => {
+  const { type, branch_id, mode_id, limit = 10 } = req.query;
+
+  try {
+    let table: string;
+    switch (type) {
+      case "semantic":
+        table = "trading_knowledge";
+        break;
+      case "episodic":
+        table = "trading_autosaves";
+        break;
+      case "structural":
+        table = "trading_branches";
+        break;
+      default:
+        return res.status(400).json({ ok: false, error: "Invalid type" });
+    }
+
+    let query = supabase.from(table).select("*").limit(Number(limit));
+
+    if (branch_id) query = query.eq("branch_id", branch_id);
+    if (mode_id) query = query.eq("mode_id", mode_id);
+
+    const { data, error } = await query;
+    if (error) throw error;
+
+    return res.status(200).json({ ok: true, data });
+  } catch (err: any) {
+    console.error("Trading memory retrieval error:", err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+export default router;
