@@ -12,6 +12,7 @@ import trades from "./routes/trades.js";
 import alerts from "./routes/alerts.js";
 import memoryItems from "./routes/memory_items.js";
 import boot from "./routes/boot.js";
+import pingLearningSession from "../ping-learning-session.js";
 import { requireApiKey } from "./util/auth.js";
 
 const app = express();
@@ -35,6 +36,7 @@ app.use(memoryItems);
 app.use(trades);
 app.use(alerts);
 app.use(boot);
+app.post("/api/ping-learning-session", pingLearningSession);
 
 // default redirects / and silences favicon
 app.get("/", (_req: Request, res: Response) => res.redirect("/health"));
