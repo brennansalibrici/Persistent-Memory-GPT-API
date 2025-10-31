@@ -16,6 +16,7 @@ import pingLearningSession from "../ping-learning-session.js";
 import { requireApiKey } from "./util/auth.js";
 
 const app = express();
+const pingHandler = pingLearningSession.default || pingLearningSession;
 
 // middleware
 app.use(cors());
@@ -36,7 +37,7 @@ app.use(memoryItems);
 app.use(trades);
 app.use(alerts);
 app.use(boot);
-app.post("/api/ping-learning-session", pingLearningSession);
+app.post("/api/ping-learning-session", pingHandler);
 
 // default redirects / and silences favicon
 app.get("/", (_req: Request, res: Response) => res.redirect("/health"));
