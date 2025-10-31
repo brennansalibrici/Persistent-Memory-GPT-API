@@ -7,6 +7,9 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log("Supabase secret from ENV:", process.env.SUPABASE_WEBHOOK_SECRET?.slice(0, 10));
+    console.log("Supabase secret from Header:", req.headers["x-supabase-secret"]?.slice(0, 10));
+    
     console.log("Received ping from Supabase:", req.body);
 
     const response = await fetch(
