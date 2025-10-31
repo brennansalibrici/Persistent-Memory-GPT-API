@@ -1,0 +1,39 @@
+// /api/trading-memory.ts
+import express from "express";
+import { supabase } from "../util/supabaseClient.js";
+
+const router = express.Router();
+
+router.post("/api/trading-memory", async (req, res) => {
+  const { type, branch_id, mode_id, lesson_id, content, summary } = req.body;
+
+  try {
+    // Choose table based on type
+    let table =
+      type === "semantic"
+        ? "trading_knowledge"
+        : type === "episodic"
+        ? "trading_autosaves"
+        : "trading_branches";
+
+    const { data, error } = await supabase
+      .from(table)
+      .insert([
+        {
+          branch_id,
+          mode_id,
+          notes: content,
+          ai_summary: summary,
+        },
+      ])
+      .select();
+
+    if (error) throw error;
+    res.status(200).json({ ok: true, data });
+  } catch (err: any) {
+    console.error("Trading memory error:", err.message);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+export default router;
