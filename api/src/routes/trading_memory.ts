@@ -1,4 +1,4 @@
-// api/src/routes/trading_memory.ts
+// /api/src/routes/trading_memory.ts
 import express from "express";
 import { query } from "../db.js";
 
@@ -6,17 +6,6 @@ const router = express.Router();
 
 /**
  * POST /api/trading-memory
- * Save new trading-related learning data.
- *
- * Body:
- * {
- *   type: "semantic" | "episodic" | "structural",
- *   branch_id?: string,
- *   mode_id?: string,
- *   lesson_id?: string,
- *   content: string,
- *   summary?: string
- * }
  */
 router.post("/api/trading-memory", async (req, res) => {
   const { type, branch_id, mode_id, lesson_id, content, summary } = req.body;
@@ -37,9 +26,9 @@ router.post("/api/trading-memory", async (req, res) => {
         return res.status(400).json({ ok: false, error: "Invalid type" });
     }
 
-    // Build the insert statement dynamically
+    // ✅ Use your real column names
     const text = `
-      insert into ${table} (branch_id, mode_id, lesson_id, notes, ai_summary, created_at)
+      insert into ${table} (branch_id, mode_id, lesson_id, content, summary, created_at)
       values ($1, $2, $3, $4, $5, now())
       returning *;
     `;
