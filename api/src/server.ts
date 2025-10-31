@@ -17,7 +17,7 @@ import trades from "./routes/trades.js";
 import alerts from "./routes/alerts.js";
 import memoryItems from "./routes/memory_items.js";
 import boot from "./routes/boot.js";
-import trading_memory from "./routes/trading_memory.js";
+import tradingMemory from "./routes/trading_memory.js";
 import { requireApiKey } from "./util/auth.js";
 
 const app = express();
@@ -43,7 +43,7 @@ app.use(memoryItems);
 app.use(trades);
 app.use(alerts);
 app.use(boot);
-
+app.use(tradingMemory);
 
 // default redirects / and silences favicon
 app.get("/", (_req: Request, res: Response) => res.redirect("/health"));
