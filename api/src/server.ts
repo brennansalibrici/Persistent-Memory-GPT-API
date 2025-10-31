@@ -17,6 +17,7 @@ import trades from "./routes/trades.js";
 import alerts from "./routes/alerts.js";
 import memoryItems from "./routes/memory_items.js";
 import boot from "./routes/boot.js";
+import trading_memory from "./routes/trading_memory.js";
 import { requireApiKey } from "./util/auth.js";
 
 const app = express();
