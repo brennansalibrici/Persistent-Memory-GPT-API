@@ -22,7 +22,7 @@ import { requireApiKey } from "./util/auth.js";
 const app = express();
 
 
-// middleware
+// middleware section
 app.use(cors());
 app.use(express.json({ limit: "10mb" }));
 
