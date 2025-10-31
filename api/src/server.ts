@@ -28,6 +28,7 @@ app.use(express.json({ limit: "10mb" }));
 
 // public routes first
 app.use(health);
+app.post("/api/ping-learning-session", pingHandler);
 
 // require API key for everything else
 app.use(requireApiKey);
@@ -41,7 +42,7 @@ app.use(memoryItems);
 app.use(trades);
 app.use(alerts);
 app.use(boot);
-app.post("/api/ping-learning-session", pingHandler);
+
 
 // default redirects / and silences favicon
 app.get("/", (_req: Request, res: Response) => res.redirect("/health"));
